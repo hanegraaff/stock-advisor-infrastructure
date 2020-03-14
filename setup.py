@@ -9,7 +9,7 @@ setuptools.setup(
     name="app_infra",
     version="0.0.1",
 
-    description="A sample CDK Python app",
+    description="Infrastructure CDK template for Stock Advisor Application",
     long_description=long_description,
     long_description_content_type="text/markdown",
 
@@ -20,11 +20,14 @@ setuptools.setup(
 
     install_requires=[
         "aws-cdk.core==1.27.0",
-        "aws-cdk.aws_iam==1.27.0",
-        "aws-cdk.aws_sqs==1.27.0",
-        "aws-cdk.aws_sns==1.27.0",
-        "aws-cdk.aws_sns_subscriptions==1.27.0",
+        #"aws-cdk.aws_iam==1.27.0",
+        #"aws-cdk.aws_sqs==1.27.0",
+        #"aws-cdk.aws_sns==1.27.0",
+        #"aws-cdk.aws_sns_subscriptions==1.27.0",
+        "aws-cdk.aws-ec2==1.27.0",
         "aws-cdk.aws_s3==1.27.0",
+        "aws-cdk.aws_ecs==1.27.0",
+        "aws-cdk.aws_ecr==1.27.0"
     ],
 
     python_requires=">=3.6",
