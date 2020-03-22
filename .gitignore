@@ -3,6 +3,9 @@ package-lock.json
 .pytest_cache
 *.egg-info
 
+# Jest and other node libraries
+node_modules/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
