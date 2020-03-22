@@ -19,7 +19,7 @@ The project is currently under development.
 
 Stock Advisor is an algorithmic trading system that can trade on your behalf using your brokerage account. It tracks an evolving portfolio of US securities based on market sentiment and actively trades it.
 
-The system is written in Python and runs in AWS, using a serverless platform. It relies on an external source for its finiancial data as well as an existing online brokerage platform to execute trades. Financial data is provided by **Intrinio** (www.intrinio.com), while brokerage services are provided using the **Etrade** developer platform (developer.etrade.com).
+The system is written in Python and runs in AWS, using a serverless platform. It relies on an external source for its financial data as well as an existing online brokerage platform to execute trades. Financial data is provided by **Intrinio** (www.intrinio.com), while brokerage services are provided using the **Etrade** developer platform (https://developer.etrade.com).
 
 Broadly speaking, the system is organzined in two services. †he first is a recommendation service that selects a monthly pool of US Equity stocks that it predicts will outperform the market, and the second is a portfolio manager that makes realtime trading decisions based on it.
 
@@ -31,7 +31,7 @@ This component maintains a monthly list of US equities using a market sentiment 
 ## Portfolio Manager
 **Status: Pending Development**
 
-The portfolio manager is an AWS Lambda based service that monitors the performance of the stock pool created by the Recommendation System and maitains an active portfolio based in it. It's exact behavior it TBD
+The portfolio manager is an AWS Lambda based service that monitors the performance of the stock pool created by the Recommendation System and maintains an active portfolio based in it. It's exact behavior it TBD
 
 
 # Stock Advisor AWS Infrastructure
