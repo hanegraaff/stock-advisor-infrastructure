@@ -26,7 +26,7 @@ class AppInfraBaseStack(core.Stack):
 
         bucket_name = "%s-data-bucket" % APPLICATION_PREFIX
         bucket_description = "%s application data" % APPLICATION_PREFIX
-        self.bucket = s3.Bucket(self, bucket_name)
+        self.bucket = s3.Bucket(self, bucket_name, removal_policy=core.RemovalPolicy.DESTROY)
         util.tag_resource(self.bucket, bucket_name, bucket_description)
 
         task_role_name = "role-%s-ecs-tasks" % APPLICATION_PREFIX
