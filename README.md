@@ -50,6 +50,19 @@ Information on getting started with the CDK is available here:
 
 https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html
 
+## Application namespace
+
+It is possible to create multiple instances of the Stock advisor infrastrcture by using a namespace that is used to prefix the resources and exports created by this automation.
+
+The namespace is defined inside ```app.py``` and is currently set to ```sa```
+
+```
+props = {
+  'APPLICATION_PREFIX': 'sa'
+}
+```
+
+To create a second application stack, change the application namespace value in the script
 
 ## app-infra-base stack
 ![Stock Advisor Design](doc/app-infra-base-stack.png)
@@ -65,10 +78,8 @@ This stack creates the foundational resources which don't change often, and incl
 ### Exports
 |Export Name|Description|
 |---|---|
-|sa-data-bucket-name|S3 Data Bucket used by the application|
-|sa-vpcid|VPC ID of the used by ECS tasks|
-|sa-public-subnet-1|Public Subnet ID 1|
-|sa-public-subnet-2|Public Subnet ID 1|
+|{app_ns}-data-bucket-name|S3 Data Bucket used by the application|
+|{app_ns}-app-notifications-topic|SNS Topic for application notifications|
 
 Additionally, there are automatically generated exports which are not documented here. These are used by the CDK to create dependencies between stacks
 
@@ -85,7 +96,7 @@ This stack creates the application compute resources that are more prone to chan
 ### Exports
 |Export Name|Description|
 |---|---|
-|sa-recommendation-service-repo-uri|Recommendation Service repository URI|
+|{app_ns}-recommendation-service-repo-uri|Recommendation Service repository URI|
 
 Additionally, there are automatically generated exports which are not documented here. These are used by the CDK to create dependencies between stacks
     

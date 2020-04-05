@@ -17,12 +17,15 @@ class AppInfraDevelopmentStack(core.Stack):
         resources created here.
     """
 
-    def __init__(self, scope: core.Construct, id: str, props: dict, **kwargs) -> None:
+    def __init__(self, scope: core.Construct, id: str, props: dict, **kwargs):
         super().__init__(scope, id, **kwargs)
 
         r_a_prefix = util.get_region_acct_prefix(kwargs['env'])
         APPLICATION_PREFIX = props['APPLICATION_PREFIX']
-    
+
+        '''
+            IAM Role and Policy used by CodeBuild to execute build jobs
+        '''
         policy_name = "policy-%s-codebuild-execution" % APPLICATION_PREFIX
         codebuild_exec_policy = iam.ManagedPolicy(self, policy_name)
         codebuild_exec_policy.add_statements(iam.PolicyStatement(actions=[
@@ -65,6 +68,9 @@ class AppInfraDevelopmentStack(core.Stack):
             managed_policies=[codebuild_exec_policy], 
             role_name=exec_role_name)
 
+        '''
+            Recommendation Service CodeBuild project
+        '''
         pfolio_sel_project_name = "%s-recommendation-service-project" % APPLICATION_PREFIX
         self.build_project = codebuild.Project(
             self, pfolio_sel_project_name, 
