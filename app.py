@@ -18,6 +18,10 @@ props = {
 
 
 app = core.App()
+'''base    = AppInfraBaseStack(app, "%s-app-infra-base" % props['APPLICATION_PREFIX'], props=props, env=environment)
+compute = AppInfraComputeStack(app, "%s-app-infra-compute"  % props['APPLICATION_PREFIX'], props=base.outputs, env=environment)
+develop = AppInfraDevelopmentStack(app, "%s-app-infra-develop"  % props['APPLICATION_PREFIX'], props=compute.outputs, env=environment)'''
+
 base    = AppInfraBaseStack(app, "app-infra-base", props=props, env=environment)
 compute = AppInfraComputeStack(app, "app-infra-compute", props=base.outputs, env=environment)
 develop = AppInfraDevelopmentStack(app, "app-infra-develop", props=compute.outputs, env=environment)

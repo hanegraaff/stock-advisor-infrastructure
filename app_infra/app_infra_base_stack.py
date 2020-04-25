@@ -100,8 +100,8 @@ class AppInfraBaseStack(core.Stack):
         )
         util.tag_resource(self.sg, sg_name,sg_description)
 
-        cluster_name = "%s-docker-cluster" % APPLICATION_PREFIX
-        cluster_description = "%s ECS cluster for all docker tasks" % APPLICATION_PREFIX
+        cluster_name = "%s-applicaton-cluster" % APPLICATION_PREFIX
+        cluster_description = "%s ECS cluster for all applicaton tasks" % APPLICATION_PREFIX
         self.fargate_cluster = ecs.Cluster(self, cluster_name, vpc = self.vpc
         )
         

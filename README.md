@@ -1,38 +1,41 @@
 
-# Stock Advisor System
+# Stock Advisor Infrastructure
+This project contains the scripts necessary to deploy the Stock Advisor system. The scripts are based on the AWS CDK and are invoked using the standard entrypoints.
 
-This project is the starting point for the Stock Advisor system. Here you can find its documentation and also the Cloudformation templates (based on CDK) used to get the system up and running.
-
-The system is organized into different GitHut projects
+The system is organized into two different GitHut projects
 
 |Project Name|Project URL|Description|
 |---|---|---|
-|Stock Advisor Main Project|https://github.com/hanegraaff/stock-advisor-main-project|This starting point for this proct. Contains documentation and automation scripts.|
-|Recommendation Service|https://github.com/hanegraaff/sa-recommendation-service|Project containing the recommendation service software|
-|Portfolio Manager|TBD|Project containing the Portfolio Manager software|
+|Stock Advisor Infrastructure|https://github.com/hanegraaff/stock-advisor-infrastructure|Contains automation to deploy infrastructure and CI automation|
+|Stock Advisor Software|https://github.com/hanegraaff/stock-advisor-software|Stock Advisor Services. The software that makes up the system|
 
 # Project status
-The project is currently under development.
+The project is under development.
 
  # Overview
 ![Stock Advisor Design](doc/stock-advisor-design.png)
 
 Stock Advisor is an algorithmic trading system that can trade on your behalf using your brokerage account. It tracks an evolving portfolio of US securities based on market sentiment and actively trades it.
 
-The system is written in Python and runs in AWS, using a serverless platform. It relies on an external source for its financial data as well as an existing online brokerage platform to execute trades. Financial data is provided by **Intrinio** (www.intrinio.com), while brokerage services are provided using the **Etrade** developer platform (https://developer.etrade.com).
+The system is written in Python and runs in AWS, using a serverless platform. It relies on an external source for its financial data as well as an existing online brokerage platform to execute trades. Financial data is provided by **Intrinio** (www.intrinio.com), while brokerage services are provided using the **TDAmeritrade** api (https://www.tdameritrade.com/api.page).
 
-Broadly speaking, the system is organzined in two services. †he first is a recommendation service that selects a monthly pool of US Equity stocks that it predicts will outperform the market, and the second is a portfolio manager that makes realtime trading decisions based on it.
+Broadly speaking, the system is organzined in two services. †he first is a recommendation service that predicts a monthly pool of US Equities expected to outperform the market, and the second is a portfolio manager maintans a portfolio based on it.
 
-## Recommendation System
+## Recommendation Service
 **Status: Initial Development Complete**
 
-This component maintains a monthly list of US equities using a market sentiment based algorithm based on analyst target price consensus and stores the results in S3. It runs inside a docker container hosted by AWS Fargate, and is scheduled to run at the end of each month, once all analyst target price predictions have been made available. It requires a list of ticker symbols stored that represents the universe of stocks that is to be analyzed. This list can contain any US Stocks and currently uses the DJIA As development progresses this list will be replaced with the S&P500, or other larger indexes. I also requires access to financial data, specifically pricing information and analyst forecasts. This infomation is downloaded and stored to S3 to reduce reliance in the Data APIs
+This service makes monthly recommendations of US equities using a market sentiment based algorithm based on market sentiment and stores the results in S3. It runs inside a docker container as a Fargate task in the EC2 cluster, and is scheduled to run at the beginning of each month once all analyst target price predictions have been made available. 
+
+The input is a list of ticker symbols that represents the universe of stocks that will be analyzed. This list can contain any US Stocks and currently uses the DOW30. Eventually it will be replaced with the S&P500, or other larger indexes. 
+
+The service requires access to financial data, specifically pricing information and analyst forecasts, which is downloaded and cached in order to reduce reliance in the Data APIs
 
 ## Portfolio Manager
-**Status: Pending Development**
+**Status: Under Development**
 
-The portfolio manager is an AWS Lambda based service that monitors the performance of the stock pool created by the Recommendation System and maintains an active portfolio based in it. It's exact behavior it TBD
+The portfolio manager selects a portfilio based on the current recommendationd, and is responsible for managing the underlining trades to get there. As inputs, the portfolio manager comapres the current portfolio wil the latest recommendations and decides whether to rebalance its positions or not.
 
+Like the Recommendation service, the portfolio manager runs as a Fargate task and is scheduled to run daily, at 11 AM EST.
 
 # Stock Advisor AWS Infrastructure
 **Status: Initial Development Complete**
@@ -52,7 +55,7 @@ https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html
 
 ## Application namespace
 
-It is possible to create multiple instances of the Stock advisor infrastrcture by using a namespace that is used to prefix the resources and exports created by this automation.
+It is possible to create multiple instances of the Stock advisor infrastructure by using a namespace that is used to prefix the resources and exports created by this automation.
 
 The namespace is defined inside ```app.py``` and is currently set to ```sa```
 
@@ -62,7 +65,7 @@ props = {
 }
 ```
 
-To create a second application stack, change the application namespace value in the script
+To create a second application stack you must change the application namespace value in the script, and run it again.
 
 ## app-infra-base stack
 ![Stock Advisor Design](doc/app-infra-base-stack.png)
@@ -72,8 +75,10 @@ This stack creates the foundational resources which don't change often, and incl
 1) A Public VPC spanning two subnets (no NAT)
 2) S3 buckets to store application data and artifacts
 3) ECS cluster compatible with Fargate.
-4) A security group used by the ECS tasks.
-5) IAM task role that define the AWS permissions allowed by the ECS tasks.
+5) SNS Topic used for application notifications
+6) Application parameters stored in Parameter Store
+7) A security group used by the ECS tasks.
+8) IAM task role that define the AWS permissions allowed by the ECS tasks.
 
 ### Exports
 |Export Name|Description|
@@ -85,34 +90,27 @@ Additionally, there are automatically generated exports which are not documented
 
 
 ## app-infra-compute stack
-<img src="doc/app-infra-compute-stack.png" width="750">
 
 This stack creates the application compute resources that are more prone to change and include:
 
 1) ECR repository for the Recommendation Service Image
-2) ECS Task definitions
+2) ECR repository for the Portfolio Manager
+2) ECS Task and Schduled Task definitions
 3) ECS Execution IAM role. The role is maintained here since each new task definition will inject an additional policy into it.
-
-### Exports
-|Export Name|Description|
-|---|---|
-|{app_ns}-recommendation-service-repo-uri|Recommendation Service repository URI|
-
-Additionally, there are automatically generated exports which are not documented here. These are used by the CDK to create dependencies between stacks
     
 ## app-infra-develop stack
 <img src="doc/app-infra-develop-stack.png" width="750">
 
-Contains the application CICD's resources, namely the codebuild project used to build the Portfoli Selector docker image.
+Contains the application CICD's resources, namely the CodeBuild project used to build the two services listed above
 
 
-# Setting up and creating the system
+# Deploying the System
 
 ## Prerequisites
 1) Latest AWS CDK
 2) Latest Python 3.x
 3) An AWS account where resources can be deployed
-4) Programmatic access to AWS credentials. These may include credentials stored in the AWS CLI configuration, or temporary credentials written to the environment variables.
+4) AWS Credentials stored in a way compatible with Boto
 
 ## Create a virtual environment
 ```
@@ -146,7 +144,7 @@ command. Alternatively you may add those to ```setup.py```
 
 ## Creating/Destrying the application infrastructure
 
-To create or update the application infrastructure you may rely on the ```cd deploy``` command
+To create or update the application infrastructure you may rely on the ```cdk deploy``` command
 
 ```
 cdk deploy app-infra-base
@@ -168,8 +166,14 @@ To create the application infrastructure in a sigle command use:
 cdk deploy app-infra-base app-infra-compute app-infra-develop
 ```
 
+The infrastructure can be destroyed using a similar command line
+
+```
+cdk destroy app-infra-base app-infra-compute app-infra-develop
+```
+
 ## Testing
-CDK doesn't curently offer testing framework for Python, but a basic testing script can be executing using```pytest```.
+CDK doesn't currently offer testing framework for Python, but a basic testing script can be executing using```pytest```.
 
 Unit tests will be added a soon as CDK offers it.
 
@@ -182,5 +186,29 @@ Unit tests will be added a soon as CDK offers it.
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
-# Bulding and deploying the system
-This section is currently under construction
+
+# Building and deploying the application software
+Once you have successfully deployed the infrastructure, you may now build and deploy the application software, namely the docker images that represent the services described above.
+
+## Setting the Intrinio API key
+First navgate to the parameter store and find the stack's and find the appropriate ```INTRINIO_API_KEY```, prefixed with the value of ```APPLICATION_PREFIX```
+
+![Intrinio Key Param Store List](doc/intrinio-key-param-store-list.png)
+
+Next replace the default value ```put_api_key_here``` with a valid key. You may sign up for a sandbox or production key by visiting the Intrinio website
+
+## Setting up Notifications
+![SNS Notifications](doc/sns-notifications.png)
+Once the infrastructure is deployed, application events are published to a SNS topic wich is created by the app-infra-base stack. You may set up an email or SMS Notification manually using the AWS console.
+
+## Running the CodeBuild jobs
+
+The ```app-infra-develop``` stack exposes 2 CodeBuild project that can be used to build the Stock Advisor services
+
+![Code Build Projects](doc/code-build-projects.png)
+
+To build the services, simply start the build process, no customizations are needed. Note that these projects are configured to build from the project ```master``` branch. If you want build using a different branch, you may do so by overriding the appropriate ```source``` parameter.
+
+<img src="doc/code-build-source-override.png" width="750">
+
+Once the build have been completed, they will be deployed to their respective ECR repos, and are ready to be used.
