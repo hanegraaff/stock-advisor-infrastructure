@@ -61,6 +61,10 @@ class AppInfraBaseStack(core.Stack):
             ], conditions=None, effect=iam.Effect.ALLOW, resources=[self.bucket.bucket_arn+"/*"]
         )),
         ecs_tasks_policy.add_statements(iam.PolicyStatement(actions=[
+                "s3:*",
+            ], conditions=None, effect=iam.Effect.ALLOW, resources=[self.bucket.bucket_arn]
+        )),
+        ecs_tasks_policy.add_statements(iam.PolicyStatement(actions=[
                 "sns:*",
             ], conditions=None, effect=iam.Effect.ALLOW, resources=[self.notification_topic.topic_arn]
         ))

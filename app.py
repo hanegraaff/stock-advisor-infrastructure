@@ -12,15 +12,19 @@ environment =	{
   "account": Aws.ACCOUNT_ID
 }
 
+'''
+  These properties will be passed to all stack. This is the closes thing to
+  a piece of configuration I can get from the CDK without building anything
+  more sophisticated.
+'''
 props = {
-  'APPLICATION_PREFIX': 'sa'
+  'APPLICATION_PREFIX': 'sa',
+  'GITHUB_REPO_OWNER': 'hanegraaff',
+  'GITHUB_REPO_NAME': 'stock-advisor-software'
 }
 
 
 app = core.App()
-'''base    = AppInfraBaseStack(app, "%s-app-infra-base" % props['APPLICATION_PREFIX'], props=props, env=environment)
-compute = AppInfraComputeStack(app, "%s-app-infra-compute"  % props['APPLICATION_PREFIX'], props=base.outputs, env=environment)
-develop = AppInfraDevelopmentStack(app, "%s-app-infra-develop"  % props['APPLICATION_PREFIX'], props=compute.outputs, env=environment)'''
 
 base    = AppInfraBaseStack(app, "app-infra-base", props=props, env=environment)
 compute = AppInfraComputeStack(app, "app-infra-compute", props=base.outputs, env=environment)

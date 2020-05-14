@@ -22,6 +22,8 @@ class AppInfraDevelopmentStack(core.Stack):
 
         r_a_prefix = util.get_region_acct_prefix(kwargs['env'])
         self.APPLICATION_PREFIX = props['APPLICATION_PREFIX']
+        self.GITHUB_REPO_OWNER = props['GITHUB_REPO_OWNER']
+        self.GITHUB_REPO_NAME = props['GITHUB_REPO_NAME']
 
         '''
             IAM Role and Policy used by CodeBuild to execute build jobs
@@ -119,7 +121,7 @@ class AppInfraDevelopmentStack(core.Stack):
         project_name = "%s-%s" % (self.APPLICATION_PREFIX, project_suffix)
         build_project = codebuild.Project(
             self, project_name, 
-            source=codebuild.Source.git_hub(owner='hanegraaff', repo='stock-advisor'),
+            source=codebuild.Source.git_hub(owner=self.GITHUB_REPO_OWNER, repo=self.GITHUB_REPO_NAME),
             build_spec=codebuild.BuildSpec.from_source_filename(buildspec_path),
             description=description,
             environment_variables=env_variables,

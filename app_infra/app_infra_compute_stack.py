@@ -38,11 +38,6 @@ class AppInfraComputeStack(core.Stack):
         self.repo_recommendation_service = self.make_ecr_repo("recommendation-service", "Recommendation Service")
         self.rep_portfolio_manager = self.make_ecr_repo("portfolio-manager-service", "Portfolio Manager Service")
 
-        '''repo_name = "%s-recommendation-service" % self.APPLICATION_PREFIX
-        repo_description = "%s Recommendation Service" % self.APPLICATION_PREFIX
-        self.repo_recommendation_service = ecr.Repository(self, repo_name, repository_name=repo_name, removal_policy=core.RemovalPolicy.DESTROY)
-        util.tag_resource(self.repo_recommendation_service, repo_name, repo_description)'''
-
         '''
             IAM Role and Policy used by Fargate to execute task
         '''
@@ -106,19 +101,26 @@ class AppInfraComputeStack(core.Stack):
         util.tag_resource(self.ecs_task_exec_role, exec_role_name, "IAM Role and Policy used by Fargate to execute task")
 
 
-
         '''
             Parameter Store variables:
             Intrinio API Key
+            TDAMeritrade Client ID and Refresh Token
         '''
-        param_api_name = 'INTRINIO_API_KEY'
-        self.intrinio_api_key_param = ssm.StringParameter(
-            self, param_api_name, parameter_name="%s_%s" % (self.APPLICATION_PREFIX.upper(), param_api_name), string_value='put_api_key_here'
-            #,type=ssm.ParameterType.SECURE_STRING
-        )
-        util.tag_resource(self.intrinio_api_key_param, param_api_name, "API Key used to access Intrinio financial data")
-
+        intrinio_api_key_name = 'INTRINIO_API_KEY'
+        self.intrinio_api_key_param = self.make_ssm_parameter(intrinio_api_key_name, 'put_api_key_here', 'API Key used to access Intrinio financial data')
         
+        td_ameritrade_account_id_name = 'TDAMERITRADE_ACCOUNT_ID'
+        self.tdameritrade_account_id = self.make_ssm_parameter(td_ameritrade_account_id_name, 'put_account_id_here', 'The TDAmeritrade Account ID')
+        
+
+        td_ameritrade_client_id_name = 'TDAMERITRADE_CLIENT_ID'
+        self.tdameritrade_client_id = self.make_ssm_parameter(td_ameritrade_client_id_name, 'put_client_id_here', 'The Client Key used to authenticate the application')
+        
+        
+        td_ameritrade_refresh_token_name = 'TDAMERITRADE_REFRESH_TOKEN'
+        self.tdameritrade_refresh_token = self.make_ssm_parameter(td_ameritrade_refresh_token_name, 'put_refresh_token_here', 'OAuth refresh token used to generate temporary Access Keys')
+
+
         '''
             Fargate Tasks:
                 1) Recommendation Service
@@ -131,7 +133,7 @@ class AppInfraComputeStack(core.Stack):
             self.repo_recommendation_service,
             "/ecs/recommendation-service",
             ['-ticker_file', 'djia30.txt', '-output_size', '3', 'production', '-app_namespace', self.APPLICATION_PREFIX],
-            {param_api_name: ecs.Secret.from_ssm_parameter(self.intrinio_api_key_param)},
+            {intrinio_api_key_name: ecs.Secret.from_ssm_parameter(self.intrinio_api_key_param)},
             "Recommendation service monthly scheduled task",
             "cron(0 4 2 * ? *)"
         )
@@ -142,7 +144,12 @@ class AppInfraComputeStack(core.Stack):
             self.rep_portfolio_manager,
             "/ecs/portfolio-manager",
             ['-app_namespace', self.APPLICATION_PREFIX, "-portfolio_size", "3"],
-            {param_api_name: ecs.Secret.from_ssm_parameter(self.intrinio_api_key_param)},
+            {
+                intrinio_api_key_name: ecs.Secret.from_ssm_parameter(self.intrinio_api_key_param),
+                td_ameritrade_account_id_name: ecs.Secret.from_ssm_parameter(self.tdameritrade_account_id),
+                td_ameritrade_client_id_name: ecs.Secret.from_ssm_parameter(self.tdameritrade_client_id),
+                td_ameritrade_refresh_token_name: ecs.Secret.from_ssm_parameter(self.tdameritrade_refresh_token)
+            },
             "Portfolio Manager daily task",
             "cron(0 15 ? * MON-FRI *)"
         )
@@ -157,6 +164,30 @@ class AppInfraComputeStack(core.Stack):
     @property
     def outputs(self):
         return self.output_props
+
+    def make_ssm_parameter(self, base_param_name : str, param_value : str, description : str):
+        '''
+            Creates and tags an SSM Parameter
+
+            Parameters
+            ----------
+            base_param_name : str
+                The base parameter name, wihtout the application namespace prefix
+            param_value : str
+                parameter value
+            description : str
+                parameter description 
+        '''
+
+        param = ssm.StringParameter(
+            self, base_param_name, parameter_name="%s_%s" % (self.APPLICATION_PREFIX.upper(), base_param_name), string_value=param_value,
+            description=description
+            #,type=ssm.ParameterType.SECURE_STRING
+        )
+        util.tag_resource(param, base_param_name, description)
+
+        return param
+
 
     def make_ecr_repo(self, repo_suffix : str, repo_description : str):
         '''
