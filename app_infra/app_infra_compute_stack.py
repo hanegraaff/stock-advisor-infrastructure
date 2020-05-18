@@ -135,7 +135,7 @@ class AppInfraComputeStack(core.Stack):
             ['-ticker_file', 'djia30.txt', '-output_size', '3', 'production', '-app_namespace', self.APPLICATION_PREFIX],
             {intrinio_api_key_name: ecs.Secret.from_ssm_parameter(self.intrinio_api_key_param)},
             "Recommendation service monthly scheduled task",
-            "cron(0 4 2 * ? *)"
+            "cron(0 10 ? * MON-FRI *)"
         )
 
         self.make_fargate_scheduled_task( 

@@ -25,7 +25,7 @@ Broadly speaking, the system is organized in two services. The first is a recomm
 ## Recommendation Service
 **Status: Initial Development Complete**
 
-This service makes monthly recommendations of US equities using an algorithm based on market sentiment and stores the results in S3. It runs inside a docker container running as a Fargate task within the ECS cluster, and will generate new predictions at beginning of each month once all analyst target price predictions for the previous month have been made available. 
+This service makes monthly recommendations of US equities using an algorithm based on market sentiment and stores the results in S3. It runs inside a docker container running as a Fargate task within the ECS cluster, and will generate new predictions at beginning of each month once all analyst target price predictions for the previous month have been made available. It runs daily at 6AM EST, but will only generate a new recommendation when the existing one expires.
 
 The input is a list of ticker symbols that represents the universe of stocks that will be analyzed. This list can contain any US Stocks and currently uses the DOW30. Eventually it will be replaced with the S&P500, or other larger indexes. 
 
@@ -34,7 +34,7 @@ The service requires access to financial data, specifically pricing information 
 ## Portfolio Manager
 **Status: Initial Development Complete**
 
-The portfolio manager selects a portfolio based on the current recommendations, and is responsible for executing the underlining trades necessary to materialize it. Each time it runs, it loads the current portfolio and latest recommendations and decides whether any rebalancing is required. Before exiting, the portfolio manager will publish a SNS notification containing a summary of the current portfolio and its returns.
+The portfolio manager selects a portfolio based on the current recommendations, and is responsible for executing the underlining trades necessary to materialize it. Each time it runs, it loads and compares the current portfolio and latest recommendations and decides whether any rebalancing is required. Before exiting, the portfolio manager will publish a SNS notification containing a summary of the current portfolio and its returns.
 
 Like the Recommendation service, the portfolio manager runs as a Fargate task and is scheduled to run daily, at 11AM EST.
 
@@ -218,6 +218,7 @@ Application events are published to a SNS topic which is created by the app-infr
 
 1) Monthly, when a new recommendation is created
 2) Daily, to summarize the portfolio current returns and performance.
+3) Whenever an error prevented any of the services from running
 
 ## Running the CodeBuild jobs
 The ```app-infra-develop``` stack exposes 2 CodeBuild project that can be used to build the Stock Advisor services
