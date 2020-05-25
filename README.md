@@ -2,7 +2,7 @@
 # Stock Advisor Infrastructure
 This project contains the scripts necessary to provision the Stock Advisor infrastructure, and deploy the system. The scripts are based on the AWS CDK and are invoked using the standard entry-points.
 
-The system is organized into three different GitHut repos
+The system is organized into three different GitHub repos
 
 |Project Name|Project URL|Description|
 |---|---|---|
