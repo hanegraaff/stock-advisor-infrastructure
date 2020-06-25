@@ -1,4 +1,3 @@
-
 # Stock Advisor Infrastructure
 This project contains the scripts necessary to provision the Stock Advisor infrastructure, and deploy the system. The scripts are based on the AWS CDK and are invoked using the standard entry-points.
 
@@ -11,7 +10,7 @@ The system is organized into three different GitHub repos
 |TDAmeritrade Authentication|https://github.com/hanegraaff/TDAmeritrade-api-authentication|Contains documentation and a sample application used to demonstrate the TDAmeritrade authorization and authentication process. This repo is not required to build the system, and should be considered supplementary documentation|
 
 # Project status
-The project currently is under development, with a working initial version of it complete.
+The project is under development, with an initial working version of it complete.
 
  # Overview
 ![Stock Advisor Design](doc/stock-advisor-design.png)
@@ -25,7 +24,7 @@ Broadly speaking, the system is organized in two services. The first is a recomm
 ## Recommendation Service
 **Status: Initial Development Complete**
 
-This service makes monthly recommendations of US equities using an algorithm based on market sentiment and stores the results in S3. It runs inside a docker container running as a Fargate task within the ECS cluster, and will generate new predictions at beginning of each month once all analyst target price predictions for the previous month have been made available. It runs daily at 6AM EST, but will only generate a new recommendation when the existing one expires.
+This service makes monthly recommendations of US equities using a number of algorithms and stores the results in S3. It runs inside a docker container running as a Fargate task within the ECS cluster, and will generate new predictions at beginning of each month once all analyst target price predictions for the previous month have been made available. It runs daily at 6AM EST, but will only generate a new recommendation when the existing one expires.
 
 The input is a list of ticker symbols that represents the universe of stocks that will be analyzed. This list can contain any US Stocks and currently uses the DOW30. Eventually it will be replaced with the S&P500, or other larger indexes. 
 
